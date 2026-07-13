@@ -120,68 +120,80 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     if (wsRef.current) return;
 
     // Use standard absolute location mapping
-    const wsUrl = import.meta.env.VITE_WS_URL || `ws://${window.location.hostname}:8000/ws`;
-    const ws = new WebSocket(wsUrl);
-    wsRef.current = ws;
+    const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = import.meta.env.VITE_WS_URL || `${wsProto}//${window.location.hostname}:8000/ws`;
+    
+    try {
+      const ws = new WebSocket(wsUrl);
+      wsRef.current = ws;
 
-    ws.onopen = () => {
-      setConnected(true);
-      addToast("System Connected", "Real-time websocket feed active.", "info");
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
-        reconnectTimeoutRef.current = null;
-      }
-    };
-
-    ws.onmessage = (event) => {
-      try {
-        const payload = JSON.parse(event.data);
-        if (payload.type === 'dashboard_update') {
-          const { packets: newPackets, resources: newResources, stats: newStats } = payload;
-
-          // 1. Process new packets
-          if (newPackets && newPackets.length > 0) {
-            setPackets((prev) => {
-              // Combine and keep max 200 packets for in-memory virtual table rendering
-              const merged = [...newPackets, ...prev];
-              return merged.slice(0, 300);
-            });
-
-            // Check for malicious anomalies to trigger system toast alerts
-            newPackets.forEach((pkt: PacketData) => {
-              if (pkt.is_anomaly) {
-                const threatStr = pkt.anomaly_reason || "Malicious Traffic";
-                const isDangerous = pkt.severity === 'Dangerous';
-                addToast(
-                  isDangerous ? "Critical Security Alert" : "Threat Warning Detected",
-                  `${threatStr} flagged from ${pkt.src_ip}:${pkt.src_port || 'N/A'}`,
-                  isDangerous ? "error" : "warning"
-                );
-              }
-            });
-          }
-
-          // 2. Set system telemetry stats
-          if (newResources) setResources(newResources);
-          if (newStats) setStats(newStats);
+      ws.onopen = () => {
+        setConnected(true);
+        addToast("System Connected", "Real-time websocket feed active.", "info");
+        if (reconnectTimeoutRef.current) {
+          clearTimeout(reconnectTimeoutRef.current);
+          reconnectTimeoutRef.current = null;
         }
-      } catch (err) {
-        console.error("Failed to parse websocket message:", err);
-      }
-    };
+      };
 
-    ws.onclose = () => {
+      ws.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data);
+          if (payload.type === 'dashboard_update') {
+            const { packets: newPackets, resources: newResources, stats: newStats } = payload;
+
+            // 1. Process new packets
+            if (newPackets && newPackets.length > 0) {
+              setPackets((prev) => {
+                // Combine and keep max 200 packets for in-memory virtual table rendering
+                const merged = [...newPackets, ...prev];
+                return merged.slice(0, 300);
+              });
+
+              // Check for malicious anomalies to trigger system toast alerts
+              newPackets.forEach((pkt: PacketData) => {
+                if (pkt.is_anomaly) {
+                  const threatStr = pkt.anomaly_reason || "Malicious Traffic";
+                  const isDangerous = pkt.severity === 'Dangerous';
+                  addToast(
+                    isDangerous ? "Critical Security Alert" : "Threat Warning Detected",
+                    `${threatStr} flagged from ${pkt.src_ip}:${pkt.src_port || 'N/A'}`,
+                    isDangerous ? "error" : "warning"
+                  );
+                }
+              });
+            }
+
+            // 2. Set system telemetry stats
+            if (newResources) setResources(newResources);
+            if (newStats) setStats(newStats);
+          }
+        } catch (err) {
+          console.error("Failed to parse websocket message:", err);
+        }
+      };
+
+      ws.onclose = () => {
+        setConnected(false);
+        wsRef.current = null;
+        // Try to reconnect in 3 seconds
+        reconnectTimeoutRef.current = setTimeout(() => {
+          connectWS();
+        }, 3000);
+      };
+
+      ws.onerror = () => {
+        ws.close();
+      };
+    } catch (err) {
+      console.error("Failed to construct WebSocket connection:", err);
       setConnected(false);
       wsRef.current = null;
-      // Try to reconnect in 3 seconds
+      // Try to reconnect in 5 seconds
       reconnectTimeoutRef.current = setTimeout(() => {
         connectWS();
-      }, 3000);
-    };
-
-    ws.onerror = () => {
-      ws.close();
-    };
+      }, 5000);
+    }
   };
 
   useEffect(() => {
