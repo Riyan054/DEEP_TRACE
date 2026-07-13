@@ -120,7 +120,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     if (wsRef.current) return;
 
     // Use standard absolute location mapping
-    const wsUrl = `ws://${window.location.hostname}:8000/ws`;
+    const wsUrl = import.meta.env.VITE_WS_URL || `ws://${window.location.hostname}:8000/ws`;
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
