@@ -107,8 +107,7 @@ async def websocket_broadcaster(app):
                 resources["db_status"] = db_status
                 
                 # Check ML status
-                detector = app.state.detector
-                ml_status = "trained" if any(detector.is_trained.values()) else "untrained"
+                ml_status = "disabled"
                 resources["ml_status"] = ml_status
                 
                 # Sniffer details

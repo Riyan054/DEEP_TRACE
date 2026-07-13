@@ -75,7 +75,7 @@ export const Dashboard: React.FC = () => {
       {/* System Status Banner */}
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between pb-2 border-b border-slate-800">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight font-outfit text-white">Security Command Operations</h1>
+          <h1 className="text-2xl font-bold tracking-tight font-outfit text-white">Network Anomaly Detection System</h1>
           <p className="text-slate-400 text-sm">Real-time intrusion detection and packet telemetry dashboard.</p>
         </div>
         <div className="flex flex-wrap gap-2 items-center">
@@ -105,9 +105,9 @@ export const Dashboard: React.FC = () => {
             ENGINE: {(resources.sniffer_status || 'stopped').toUpperCase()}
           </div>
 
-          {/* Model Status */}
+          {/* Strategy Status */}
           <div className="px-3 py-1.5 rounded-full text-xs font-semibold border bg-indigo-500/10 text-indigo-400 border-indigo-500/20">
-            MODEL: {(resources.ml_status || 'untrained').toUpperCase()}
+            STRATEGY: SIGNATURES
           </div>
         </div>
       </div>
@@ -365,7 +365,7 @@ export const Dashboard: React.FC = () => {
         <div className="flex justify-between items-center">
           <div>
             <h2 className="text-md font-semibold text-white">Live Threat Stream</h2>
-            <p className="text-xs text-slate-400">Most recent security incidents flagged by rules and ML engines.</p>
+            <p className="text-xs text-slate-400">Most recent security incidents flagged by signature detection rules.</p>
           </div>
           <span className="px-2 py-0.5 rounded bg-cyber-rose/15 text-cyber-rose text-xs font-bold uppercase tracking-wider pulse-bullet">
             Active Alerts feed

@@ -139,20 +139,7 @@ export const Settings: React.FC = () => {
                 <span className="text-[10px] text-slate-500 block">Needs root permissions for live captures.</span>
               </div>
 
-              {/* Active ML model */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-300 block">Active ML Prediction Model</label>
-                <select 
-                  value={activeModel} 
-                  onChange={e => setActiveModel(e.target.value)}
-                  className="cyber-input w-full bg-slate-950"
-                >
-                  <option value="Isolation Forest">Isolation Forest</option>
-                  <option value="Random Forest">Random Forest</option>
-                  <option value="One-Class SVM">One-Class SVM</option>
-                </select>
-                <span className="text-[10px] text-slate-500 block">Classifies threat anomalies in incoming streams.</span>
-              </div>
+
 
               {/* Limit input */}
               <div className="space-y-1.5">
@@ -197,12 +184,7 @@ export const Settings: React.FC = () => {
                 <span className="text-cyber-emerald font-bold">CONNECTED</span>
               </div>
 
-              <div className="flex justify-between items-center text-xs py-1.5 px-2 bg-slate-900/40 rounded-lg">
-                <span className="text-slate-400 font-medium flex items-center gap-1.5">
-                  <Cpu size={14} /> Scikit-learn Pipeline
-                </span>
-                <span className="text-cyber-emerald font-bold">COMPILING</span>
-              </div>
+
             </div>
           </div>
         </form>

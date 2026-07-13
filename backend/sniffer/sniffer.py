@@ -6,7 +6,7 @@ import threading
 import queue
 import random
 import traceback
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 import psutil
 
 # Ensure scapy doesn't print warnings on startup
@@ -19,12 +19,10 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".
 
 from backend.database.db import SessionLocal
 from backend.models.models import Packet, Alert, SystemLog
-from backend.ml.detector import AnomalyDetector
 from backend.utils.config import MOCK_MODE, PACKET_LIMIT
 
 class PacketSniffer:
-    def __init__(self, detector: AnomalyDetector):
-        self.detector = detector
+    def __init__(self):
         self.interface = "en0"
         self.mock_mode = MOCK_MODE
         self.packet_limit = PACKET_LIMIT
@@ -244,28 +242,47 @@ class PacketSniffer:
         count = len(self.packet_rate_tracker[src_ip])
         return count / 5.0 if count > 0 else 0.0
 
+    def _evaluate_packet_anomaly(self, pkt: Dict[str, Any]) -> Tuple[bool, float, Optional[str]]:
+        """Signature-based anomaly analyzer."""
+        size = pkt.get("size") or 0
+        flags = pkt.get("flags") or ""
+        dst_port = pkt.get("dst_port") or 0
+        rate = pkt.get("packet_rate") or 10.0
+        proto = str(pkt.get("protocol", "")).upper()
+
+        # Check for malformed packet
+        if size > 65535 or size < 20:
+            return True, 0.9, "Malformed Packet"
+        # Check Large payload
+        if size > 1500:
+            return True, 0.75, "Large Payload"
+        # Port scan signature
+        if "S" in flags and dst_port in [21, 22, 23, 135, 139, 445, 3389] and rate > 50:
+            return True, 0.85, "Port Scan"
+        # DoS check
+        if rate > 200:
+            return True, 0.95, "DoS"
+        
+        # Check for abnormal protocol
+        if proto not in ["TCP", "UDP", "ICMP", "ARP", "DNS", "HTTP", "TLS", "OTHER"]:
+            return True, 0.7, "Unknown Protocol"
+
+        return False, 0.0, None
+
     def _evaluate_and_save_packet(self, pkt_dict: Dict[str, Any]):
-        """Evaluate packet using ML/Rules, save to SQLite, trigger alerts and push to WebSocket queue."""
+        """Evaluate packet using signature rules, save to SQLite, trigger alerts and push to WebSocket queue."""
         db = SessionLocal()
         try:
-            # 1. Run Machine Learning Inference
-            is_anomaly, anomaly_score, anomaly_reason = self.detector.predict(pkt_dict)
+            # 1. Run Signature-based anomaly detection
+            is_anomaly, anomaly_score, anomaly_reason = self._evaluate_packet_anomaly(pkt_dict)
             
-            # 2. Rule overrides & threat classification
+            # 2. Threat classification
             severity = "Safe"
             if is_anomaly:
                 if anomaly_reason in ["DoS", "Port Scan"]:
                     severity = "Dangerous"
                 else:
                     severity = "Suspicious"
-            
-            # Perform additional heuristic checking for blacklisted IP or specific behaviors
-            # (e.g. abnormal size, large payloads, malformed headers)
-            if pkt_dict["size"] > 1500:
-                is_anomaly = True
-                anomaly_score = max(anomaly_score, 0.75)
-                anomaly_reason = "Large Payload"
-                severity = "Suspicious"
                 
             # Create DB Model
             db_packet = Packet(

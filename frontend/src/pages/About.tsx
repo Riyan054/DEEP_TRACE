@@ -16,7 +16,7 @@ export const About: React.FC = () => {
           <Network size={18} className="text-cyber-cyan" /> Core Pipeline Flow
         </h2>
         <p className="text-xs text-slate-400 leading-relaxed">
-          The Network Anomaly Detection System (NADS) captures real-time packets, extracts numerical metadata features, classifies them using machine learning predictors, and streams telemetry values to subscriber clients.
+          DEEP TRACE is a Network Anomaly Detection System that captures real-time packets, extracts metadata features, classifies them using signature-based intrusion rules, and streams telemetry values to subscriber clients.
         </p>
 
         {/* Visual flow chart */}
@@ -36,9 +36,9 @@ export const About: React.FC = () => {
           </div>
 
           <div className="p-3 bg-slate-900/60 border border-white/5 rounded-xl space-y-1.5">
-            <div className="text-cyber-rose font-bold text-xs uppercase">03. Inference</div>
+            <div className="text-cyber-rose font-bold text-xs uppercase">03. Classification</div>
             <div className="text-[10px] text-slate-400 leading-normal">
-              Classifiers (SVM, Forest) compute anomaly ratios and flag potential malicious payloads.
+              Signature inspection engines check packet sizes, rates, and flags for known attack signatures.
             </div>
           </div>
 
@@ -70,7 +70,6 @@ export const About: React.FC = () => {
               <li><b>/api</b> : FastAPI endpoints and WS channels</li>
               <li><b>/database</b> : SQLAlchemy session factories</li>
               <li><b>/models</b> : Table models for packet records</li>
-              <li><b>/ml</b> : Isolation Forest, Random Forest models</li>
               <li><b>/sniffer</b> : Thread-safe Scapy packet sniffer</li>
               <li><b>/reports</b> : ReportLab PDF layout generator</li>
             </ul>

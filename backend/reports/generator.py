@@ -159,7 +159,7 @@ class ReportGenerator:
             story = []
             
             # 1. Header Section
-            story.append(Paragraph("Network Anomaly Detection System (NADS)", title_style))
+            story.append(Paragraph("DEEP TRACE: Network Anomaly Detection System", title_style))
             t_str = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(stats["timestamp"]))
             story.append(Paragraph(f"<b>Security Assessment Report</b> | Generated: {t_str}", body_style))
             story.append(Spacer(1, 10))
@@ -261,7 +261,7 @@ class ReportGenerator:
             has_scan = any(a["attack_type"] == "Port Scan" for a in stats["alerts"])
             has_exfil = any(a["attack_type"] == "Large Payload" for a in stats["alerts"])
             
-            recs.append("<b>Establish Baseline Network Profiling:</b> Routinely retrain the Machine Learning models (Isolation Forest/Random Forest) with quiet network states to improve classification metrics.")
+            recs.append("<b>Establish Baseline Network Profiling:</b> Routinely audit signature rules against network states to improve detection accuracy and reduce false positives.")
             
             if has_dos:
                 recs.append("<b>Mitigate Denials of Service (DoS):</b> Implement rate-limiting firewalls or deploy Cloudflare/AWS Shield protections. Apply connection pooling thresholds for source IPs exceeding 100 packets/sec.")

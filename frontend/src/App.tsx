@@ -4,7 +4,6 @@ import Dashboard from './pages/Dashboard';
 import LiveCapture from './pages/LiveCapture';
 import TrafficAnalytics from './pages/TrafficAnalytics';
 import ThreatDetection from './pages/ThreatDetection';
-import MachineLearning from './pages/MachineLearning';
 import Reports from './pages/Reports';
 import Logs from './pages/Logs';
 import Settings from './pages/Settings';
@@ -12,7 +11,7 @@ import About from './pages/About';
 import { 
   Activity, ShieldAlert, Heart, HardDrive, Cpu, 
   Terminal, ShieldCheck, Play, Info, AlertTriangle, 
-  Grid, Compass, BarChart3, AlertOctagon, BrainCircuit, 
+  Grid, Compass, BarChart3, AlertOctagon, 
   Files, Settings as SettingsIcon, HelpCircle, X
 } from 'lucide-react';
 
@@ -26,7 +25,6 @@ const AppContent: React.FC = () => {
       case 'live_capture': return <LiveCapture />;
       case 'analytics': return <TrafficAnalytics />;
       case 'threat_detection': return <ThreatDetection />;
-      case 'ml': return <MachineLearning />;
       case 'reports': return <Reports />;
       case 'logs': return <Logs />;
       case 'settings': return <Settings />;
@@ -40,7 +38,6 @@ const AppContent: React.FC = () => {
     { id: 'live_capture', label: 'Live Capture', icon: Compass },
     { id: 'analytics', label: 'Traffic Analytics', icon: BarChart3 },
     { id: 'threat_detection', label: 'Threat Detection', icon: AlertOctagon },
-    { id: 'ml', label: 'Machine Learning', icon: BrainCircuit },
     { id: 'reports', label: 'Reports', icon: Files },
     { id: 'logs', label: 'Console Logs', icon: Terminal },
     { id: 'settings', label: 'Settings', icon: SettingsIcon },
@@ -58,7 +55,7 @@ const AppContent: React.FC = () => {
               <ShieldCheck size={20} />
             </div>
             <div>
-              <span className="font-bold tracking-wider font-outfit text-white text-sm">NADS // MONITOR</span>
+              <span className="font-bold tracking-wider font-outfit text-white text-sm">DEEP TRACE</span>
               <span className="text-[10px] text-slate-500 font-mono block">ENTERPRISE SEC OPS</span>
             </div>
           </div>

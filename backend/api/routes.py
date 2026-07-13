@@ -10,7 +10,7 @@ from backend.database.db import get_db
 from backend.models.models import Packet, Alert, SystemLog, AuditLog
 from backend.schemas.schemas import (
     PacketSchema, AlertSchema, SnifferControlSchema, SettingsSchema,
-    MLMetricsSchema, ModelComparisonSchema, SystemMetricsSchema
+    SystemMetricsSchema
 )
 from backend.reports.generator import ReportGenerator
 from backend.utils.metrics import get_system_resource_metrics
@@ -143,52 +143,15 @@ def resolve_alert(alert_id: int, db: Session = Depends(get_db)):
     log_audit(db, "Resolve Alert", f"Alert ID: {alert_id}")
     return {"status": "success", "alert_id": alert_id}
 
-@router.get("/ml/metrics", response_model=ModelComparisonSchema)
-def get_ml_metrics(request: Request):
-    """Retrieve training accuracy performance comparison across all models."""
-    detector = request.app.state.detector
-    return detector.get_comparison_data()
-
-@router.post("/ml/select")
-def select_model(payload: Dict[str, str], request: Request, db: Session = Depends(get_db)):
-    """Set the active ML model for live classifications."""
-    detector = request.app.state.detector
-    model_name = payload.get("model_name")
-    
-    if not model_name:
-        raise HTTPException(status_code=400, detail="model_name is required")
-        
-    success = detector.set_active_model(model_name)
-    if not success:
-        raise HTTPException(status_code=400, detail=f"Model '{model_name}' not available. Retrain first.")
-        
-    log_audit(db, "Select Model", f"Active ML Model: {model_name}")
-    return {"status": "success", "active_model": detector.active_model_name}
-
-@router.post("/ml/train")
-def train_models(request: Request, db: Session = Depends(get_db)):
-    """Trigger manual retraining of ML models (pulls DB history or synthetic fallback)."""
-    detector = request.app.state.detector
-    # Grab last 2000 packets from db
-    packets = db.query(Packet).order_by(Packet.timestamp.desc()).limit(2000).all()
-    
-    try:
-        metrics = detector.retrain_from_packets(packets)
-        log_audit(db, "Train Models", f"Trained on {len(packets)} historical records.")
-        return {"status": "success", "metrics": metrics}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Training failed: {str(e)}")
-
 @router.get("/settings", response_model=SettingsSchema)
 def get_settings(request: Request):
     """Retrieve global network analyzer configuration."""
     sniffer = request.app.state.sniffer
-    detector = request.app.state.detector
     return {
         "mock_mode": sniffer.mock_mode,
         "refresh_rate": 1.0,
         "packet_limit": sniffer.packet_limit,
-        "active_model": detector.active_model_name,
+        "active_model": "Signature-based",
         "interface": sniffer.interface,
         "notification_toggle": True
     }
@@ -197,13 +160,11 @@ def get_settings(request: Request):
 def update_settings(settings: SettingsSchema, request: Request, db: Session = Depends(get_db)):
     """Update global configuration parameters dynamically."""
     sniffer = request.app.state.sniffer
-    detector = request.app.state.detector
     
     # Apply changes
     sniffer.set_mock_mode(settings.mock_mode)
     sniffer.set_interface(settings.interface)
     sniffer.packet_limit = settings.packet_limit
-    detector.set_active_model(settings.active_model)
     
     log_audit(db, "Update Settings", f"Mock: {settings.mock_mode}, Interface: {settings.interface}")
     return {"status": "success", "settings": settings}
@@ -285,7 +246,6 @@ def replay_pcap(payload: Dict[str, Any], request: Request, db: Session = Depends
 def get_system_metrics(request: Request, db: Session = Depends(get_db)):
     """Retrieve operational health, uptime, and hardware resource allocations."""
     sniffer = request.app.state.sniffer
-    detector = request.app.state.detector
     
     resources = get_system_resource_metrics()
     
@@ -297,7 +257,7 @@ def get_system_metrics(request: Request, db: Session = Depends(get_db)):
         db_status = "error"
         
     # ML status
-    ml_status = "trained" if any(detector.is_trained.values()) else "untrained"
+    ml_status = "disabled"
     
     sniffer_state = "stopped"
     if sniffer.running:

@@ -9,7 +9,6 @@ from contextlib import asynccontextmanager
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from backend.database.db import init_db
-from backend.ml.detector import AnomalyDetector
 from backend.sniffer.sniffer import PacketSniffer
 from backend.api.routes import router as api_router
 from backend.api.websockets import router as ws_router, websocket_broadcaster
@@ -24,18 +23,14 @@ async def lifespan(app: FastAPI):
     # 1. Initialize SQLite Database
     init_db()
     
-    # 2. Initialize ML Anomaly Detector
-    detector = AnomalyDetector()
-    app.state.detector = detector
-    
-    # 3. Initialize Packet Capture Engine
-    sniffer = PacketSniffer(detector=detector)
+    # 2. Initialize Packet Capture Engine
+    sniffer = PacketSniffer()
     app.state.sniffer = sniffer
     
     # Write startup log
     sniffer.log_system_event("API", "INFO", "FastAPI server lifespan initializing.")
     
-    # 4. Auto-start the packet sniffer
+    # 3. Auto-start the packet sniffer
     sniffer.start()
     
     # 5. Spawn background WebSocket broadcaster
@@ -56,8 +51,8 @@ async def lifespan(app: FastAPI):
 
 # Instantiate FastAPI application
 app = FastAPI(
-    title="Network Anomaly Detection System (NADS) API",
-    description="Enterprise API endpoint supporting live packet inspections and ML classifications",
+    title="DEEP TRACE API",
+    description="DEEP TRACE: A Network Anomaly Detection System API",
     version="1.0.0",
     lifespan=lifespan
 )
@@ -78,7 +73,7 @@ app.include_router(ws_router)
 @app.get("/")
 def read_root():
     return {
-        "app": "Network Anomaly Detection System (NADS) Backend",
+        "app": "DEEP TRACE: A Network Anomaly Detection System Backend",
         "status": "online",
         "documentation": "/docs"
     }

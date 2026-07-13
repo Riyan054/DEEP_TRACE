@@ -60,22 +60,6 @@ export const api = {
     return res.data;
   },
 
-  // ML Models
-  getMLMetrics: async (): Promise<any> => {
-    const res = await apiClient.get('/ml/metrics');
-    return res.data;
-  },
-
-  selectModel: async (modelName: string): Promise<any> => {
-    const res = await apiClient.post('/ml/select', { model_name: modelName });
-    return res.data;
-  },
-
-  trainModels: async (): Promise<any> => {
-    const res = await apiClient.post('/ml/train');
-    return res.data;
-  },
-
   // Settings
   getSettings: async (): Promise<any> => {
     const res = await apiClient.get('/settings');
@@ -86,7 +70,7 @@ export const api = {
     mock_mode: boolean;
     refresh_rate: number;
     packet_limit: number;
-    active_model: string;
+    active_model?: string;
     interface: string;
     notification_toggle: boolean;
   }): Promise<any> => {
