@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+scapy
+pyshark
+scikit-learn
+sqlalchemy
+pydantic
+pandas
+reportlab
+websockets
+joblib
+psutil
+python-multipart
